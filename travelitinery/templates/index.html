@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Itinerary Item Management</title>
+    <style>
+        /* Add your custom styles here */
+    </style>
+</head>
+<body>
+    <h1>Itinerary Item Management</h1>
+    
+    <h2>Add New Itinerary Item</h2>
+    <form id="itineraryForm">
+        <label for="arrival_date">Arrival Date:</label>
+        <input type="date" id="arrival_date" name="arrival_date" required>
+        <br>
+        <label for="departure_date">Departure Date:</label>
+        <input type="date" id="departure_date" name="departure_date" required>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <h2>Itinerary Items</h2>
+    <ul id="itineraryList">
+        <!-- Itinerary items will be dynamically populated here -->
+    </ul>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('itineraryForm');
+            const list = document.getElementById('itineraryList');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = new FormData(form);
+                const requestData = Object.fromEntries(formData.entries());
+
+                try {
+                    const response = await fetch('/api/itinerary-items/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestData),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to add itinerary item');
+                    }
+
+                    const newItem = await response.json();
+                    const itemElement = document.createElement('li');
+                    itemElement.textContent = `Arrival Date: ${newItem.arrival_date}, Departure Date: ${newItem.departure_date}`;
+                    list.appendChild(itemElement);
+
+                    form.reset();
+                } catch (error) {
+                    console.error(error);
+                    alert('Failed to add itinerary item');
+                }
+            });
+
+            // Fetch existing itinerary items and display them
+            async function fetchItineraryItems() {
+                try {
+                    const response = await fetch('/api/itinerary-items/');
+                    const data = await response.json();
+                    
+                    list.innerHTML = ''; // Clear existing items
+
+                    data.forEach(item => {
+                        const itemElement = document.createElement('li');
+                        itemElement.textContent = `Arrival Date: ${item.arrival_date}, Departure Date: ${item.departure_date}`;
+                        list.appendChild(itemElement);
+                    });
+                } catch (error) {
+                    console.error(error);
+                    alert('Failed to fetch itinerary items');
+                }
+            }
+
+            fetchItineraryItems(); // Initial fetch when page loads
+        });
+    </script>
+</body>
+</html>
